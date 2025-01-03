@@ -24,10 +24,10 @@ class sar:
     def __init__(self,fhand):
         self.rawTableList=sar._parseFile(fhand)
         if len(self.rawTableList) == 0:
-            raise SarException('No tables found')
+            raise sar.SarException('No tables found')
         self.tableList=self._loadTables()
         if len(self.tableList) == 0:
-            raise SarException('No tables loaded')
+            raise sar.SarException('No tables loaded')
 
     class SarException(Exception):
         def __init__(self,message="Unexpected Error!"):
