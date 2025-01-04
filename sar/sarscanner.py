@@ -1,23 +1,23 @@
 #**************************************************
 # sarscanner V 1.3
 # Author: Mohamed Hegazy
-# Last updated by Mohamed Hegazy - 1/2/2025
+# Last updated by Mohamed Hegazy - 1/4/2025
 #**************************************************
 
 import os
 import sys
-parentDir = os.path.abspath('..')
-sys.path.append(parentDir)
+#parentDir = os.path.abspath('..')
+#sys.path.append(parentDir)
 
 from .sar import sar
 #import utils
-from utils import table, BarPlot, printList, getListDisplayText, printStreamBuffer, stack, underline, Stage
+from .utils import table, BarPlot, printList, getListDisplayText, printStreamBuffer, stack, underline, Stage
 #from utils.table import Table
 #from utils.BarPlot import BarPlot
 #from utils.ListTables import printList, getListDisplayText, printStreamBuffer, stack, underline
 #from utils.InfoRecord import Stage
 import json
-import sys
+#import sys
 
 class sarscanner:
     def singleFileScan(fhand):
