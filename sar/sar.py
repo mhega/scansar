@@ -15,8 +15,9 @@ sys.path.append(parentDir)
 # However, if the module that imports sar exists exists elsewhere
 # , we will fail to import the below classes unless the above lines are uncommended hence the parent directory is added to the path.
 
-from utils.table import Table
-from utils.ListTables import printStreamBuffer
+from utils import Table, printStreamBuffer
+#from utils.table import Table
+#from utils.ListTables import printStreamBuffer
 import re
 from io import StringIO
 

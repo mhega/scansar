@@ -1,10 +1,10 @@
 #**************************************************
-# Table V 1.0
+# Table V 1.3
 # Author: Mohamed Hegazy
-# Last updated by Mohamed Hegazy - 12/26/2022
+# Last updated by Mohamed Hegazy - 1/3/2025
 #**************************************************
 
-from utils.ListTables import printList, getListDisplayText
+from .ListTables import printList, getListDisplayText
 
 class Table:
     def __init__(self, headerNames = [], data = []):

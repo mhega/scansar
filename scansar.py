@@ -4,7 +4,8 @@
 # Last updated by Mohamed Hegazy - 1/2/2025
 #**************************************************
 
-from sar.sarscanner import sarscanner
+from sar import sarscanner
+#from sar.sarscanner import sarscanner
 import sys
 
 try:

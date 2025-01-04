@@ -1,11 +1,11 @@
 #**************************************************
-# ListTables class V 1.0
+# ListTables class V 1.3
 # Author: Mohamed Hegazy
-# Last updated by Mohamed Hegazy - 12/27/2024
+# Last updated by Mohamed Hegazy - 1/3/2025
 #**************************************************
 
 import re
-from utils.InfoRecord import Stage
+from .InfoRecord import Stage
 
 def padding(input,keylength):   # Space padding for uniform display.
                                 # While this generates a padding length for only one column value in a table, it puts into account the longest value (maxlength)
