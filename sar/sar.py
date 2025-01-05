@@ -1,23 +1,10 @@
 #**************************************************
-# sar class V 1.2
+# sar class V 1.4
 # Author: Mohamed Hegazy
 # Last updated by Mohamed Hegazy - 1/4/2025
 #**************************************************
 
-#import os
-#import sys
-#parentDir = os.path.abspath('..')
-#sys.path.append(parentDir)
-
-# While it may seem confusing to observe the effect of commenting out the above lines
-# , adding them ensures that subdirectories from the parent directory of sar will be accessible to sar.py
-# This is despite that if we import sar from a module that exists in the parent directory, there should be no errors.
-# However, if the module that imports sar exists exists elsewhere
-# , we will fail to import the below classes unless the above lines are uncommended hence the parent directory is added to the path.
-
 from .utils import Table, printStreamBuffer
-#from utils.table import Table
-#from utils.ListTables import printStreamBuffer
 import re
 from io import StringIO
 
