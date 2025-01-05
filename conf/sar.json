@@ -1,0 +1,14 @@
+{"fields": [
+    {"sort":"%memused","report":"Memory"},
+    {"sort":"kbdirty","report":"Memory"},
+    {"sort":"kbmemused","report":"Memory"},
+    {"sort":"%commit","report":"Memory"},
+    {"sort":"pswpin/s","report":"Swap"},
+    {"sort":"pswpout/s","report":"Swap"},
+    {"sort":"%user","group":"CPU","report":"CPU"},
+    {"sort":"%system","group":"CPU","report":"CPU"},
+    {"sort":"%usr","group":"CPU","report":"CPU"},
+    {"sort":"%sys","group":"CPU","report":"CPU"},
+    {"sort":"%iowait","group":"CPU","report":"CPU"},
+    {"sort":"bwrtn/s"}
+    ]}
