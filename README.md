@@ -24,6 +24,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 ...     sarData=sar(filehandle)
 ... 
 >>>
+
 >>> len(sarData.tableList)
 31
 >>>
@@ -36,9 +37,11 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> sarData.fetchtables('%usr')
 [<sar.utils.table.Table object at 0x100c511f0>, <sar.utils.table.Table object at 0x100c51700>, :::]
 >>>
+
 >>> from sar.utils import Table
 >>> 
 >>> usrTables=sarData.fetchtables('%usr')
+
 >>> usrTables[0].print()
 Timestamp     CPU     %usr      %nice     %sys     %iowait     %steal     %irq     %soft     %guest     %idle     
 ---------     ---     ----      -----     ----     -------     ------     ----     -----     ------     -----     
@@ -51,9 +54,27 @@ Timestamp     CPU     %usr      %nice     %sys     %iowait     %steal     %irq  
 00:35:02      1       2.95      0.00      0.65     0.04        0.00       0.00     0.03      0.00       96.33     
 00:40:01      1       2.74      0.00      0.78     0.04        0.00       0.00     0.03      0.00       96.41
 :::
+
 >>> usrTables[0].get(('Timestamp','CPU','%usr'))
 [('00:05:31', '1', '3.21'), ('00:10:01', '1', '2.22'), ('00:15:01', '1', '2.56'), ('00:20:01', '1', '2.33'), :::]
-:::
+
+>>> usrTables[0].get(('Timestamp',('CPU',float),('%usr',float)))
+[('00:05:31', 1.0, 3.21), ('00:10:01', 1.0, 2.22), ('00:15:01', 1.0, 2.56), ('00:20:01', 1.0, 2.33), :::]
+
+>>> sortedSampleTableAsList=sorted( usrTables[0].get(('Timestamp',('CPU',float),('%usr',float))) , key=lambda row:row[2], reverse=True)
+ 
+>>> sortedSampleTableAsList[0:5]
+[('22:25:01', 1.0, 38.2), ('22:40:01', 1.0, 31.8), ('21:45:01', 1.0, 30.23), ('22:15:01', 1.0, 27.64), ('22:45:01', 1.0, 25.85)]
+
+>>> Table(headerNames=('Timestamp','CPU','%usr'),data=sortedSampleTableAsList[0:5]).print()
+Timestamp     CPU     %usr      
+---------     ---     ----      
+22:25:01      1.0     38.2      
+22:40:01      1.0     31.8      
+21:45:01      1.0     30.23     
+22:15:01      1.0     27.64     
+22:45:01      1.0     25.85     
+>>> 
 ```
 
 #
