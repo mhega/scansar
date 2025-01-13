@@ -1,5 +1,5 @@
 #**************************************************
-# sarscanner V 1.4
+# sarscanner V 1.4.1
 # Author: Mohamed Hegazy
 # Last updated by Mohamed Hegazy - 1/4/2025
 #**************************************************
@@ -11,7 +11,8 @@ from .utils import table, BarPlot, printList, getListDisplayText, printStreamBuf
 import json
 
 class sarscanner:
-    def singleFileScan(fhand):
+    
+    def singleObjectScan(sarData):
         def analyzeFields(fields, sarDataInstance):
             """analyzeFields runs once for every report.
             Each json field maps to a report name using "report" key. If a field specifies no report name, it will default to "Others"
@@ -34,12 +35,7 @@ class sarscanner:
                         data=BarPlot.appendBarPlot(t.get(('Timestamp',sort),filterFunc=lambda x:True, sortKey=lambda x:float(x(sort)), reverse=True)[:5],1)
                         lists.append(getListDisplayText(header=('Timestamp',sort,''), data=data))
             return lists
-
-        try:
-            sarData=sar(fhand)
-        except sar.SarException as e:
-            raise e
-        
+       
         # Let's start the analysis:
         curPath=os.path.dirname(sys.modules[__name__].__file__)
         with open(f'{curPath}/../conf/sar.json','r') as jsontst:
@@ -59,3 +55,12 @@ class sarscanner:
             if len(lists) > 0:
                 print(Stage('Analyzing '+report[0]).stringValue())
                 stack(*lists, padding=20, lineCapacity=200)
+
+    def singleFileScan(fhand):
+        try:
+            sarData=sar(fhand)
+        except sar.SarException as e:
+            raise e
+
+        sarscanner.singleObjectScan(sarData)
+         
