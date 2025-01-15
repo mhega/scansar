@@ -1,7 +1,7 @@
 #**************************************************
-# sar class V 1.4
+# sar class V 1.4.1
 # Author: Mohamed Hegazy
-# Last updated by Mohamed Hegazy - 1/4/2025
+# Last updated by Mohamed Hegazy - 1/14/2025
 #**************************************************
 
 from .utils import Table, printStreamBuffer
@@ -252,3 +252,25 @@ class sar:
                     result[item[0]]=result.get(item[0],Table())+item[1]
     
         return list(result.values())
+
+
+    def printRawSar(self):
+        for _table in self.rawTableList:
+            print(_table)
+
+
+    def query(self, queryFunc):
+        queryResult={}
+        for (_hash,_by,_val),_table in [_item for _ in self.tableList for _item in _.items() ]:
+            try:
+                _result=_table.get(filterFunc=queryFunc)
+            except:
+                continue
+            if len(_result) > 0:
+                queryResult[_hash]=queryResult.get(_hash,Table())+Table(headerNames=_table.headerNames, data=_result)
+        for _table in queryResult.values():
+            print('')
+            _table.print()
+            
+            
+        
