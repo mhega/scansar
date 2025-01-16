@@ -1,7 +1,7 @@
 #**************************************************
-# sar class V 1.4.1
+# sar class V 1.4.2
 # Author: Mohamed Hegazy
-# Last updated by Mohamed Hegazy - 1/14/2025
+# Last updated by Mohamed Hegazy - 1/15/2025
 #**************************************************
 
 from .utils import Table, printStreamBuffer
@@ -44,46 +44,6 @@ class sar:
     def _loadTables(self):
         """loadTables serves as the moderator for tabulating individual raw data snippets that are read from the file.
         """
-        def splitTable(parentTable, by=None, startfrom=None):
-            """Given the nature of sar data and the intent of our analysis, a table might need to be broken down into multiple children table depending on certain columns.
-            A table is split by a column that can be generally thought of as "group by" column - that has a finite list of values.
-            In other word, splitting a parent table into subtables can be thought of as the inverse of UNION operation against the subtables to make up the input parent table."""
-            
-            header=tuple(parentTable.headerNames)
-    
-            # Passing no value for the "by" parameter is equivalent is telling the function to not split anything.
-            # This is to standardize the execution sequence across all tables regardless of whether there exists a lookup column in each of those tables.
-            # However, even though we are not splitting a table with no lookup column, we are still storing it into a similar data structure (dictionary) as if it was split
-            # , and we consider the input table as a child table that has no parent (dictionary key = (None,None) ).
-            if not by: 
-                return {(hash(header),None,None):parentTable}
-    
-            # grouper is the finite list of values under "by" column.
-            grouper=parentTable.get(by)
-    
-            # startfrom allows splitTable to continue from an existing state - append the splitting result into an existing dictionary.
-            # This is used to split into existing dictionaries in the case when multiple lookup columns exist in the same table.
-            # That is when splitTable needs to be called multiple consecutive times.
-            result=(startfrom if startfrom else {})
-    
-            
-            for val in list(set(grouper)):
-                
-                key=(hash(header),by,val)
-                # The intent behind constructing a dictionary with a composite key made up of the above three columns is:
-                # 1. by: 
-                #      To distinguish children tables of the same parent table and are based on different "by" column.
-                # 2. val:
-                #      To distinguish children tables of a parent table and are based on the same "by" column, but different column values.
-                # 3. hash(header):
-                #      To distinguish children tables of different parent tables yet happen to have matching "by" column name, and "by" column values.
-                #    While two different tables are unlikely going to collide on the same "by" column name and value in our case
-                #    -especially since we will be consolidating different tables only during the process of table fetching by field
-                #     which adds another factor to the equation, we should still make sure we are combining two different metrics by adding hash(header) to the key.
-    
-                subtable=parentTable.get(filterFunc=lambda x:x(by)==val)
-                result[key]=Table(headerNames=header, data=subtable)
-            return result
 
 
         # Suppress printed text into a buffer as opposed to displaying it to standard output
@@ -223,16 +183,11 @@ class sar:
                 if currentTable2.len() > currentTable.len():
                     currentTable=currentTable2
     
-            # Lookup columns in each table are uniquely identifiable by their fully-capitalized names.
-            # We use the same pattern to identify and use them for splitting the tables.   
-            allcapPattern=r'^[A-Z0-9]+$'
+
             tableDict={}
             if currentTable.len() > 0:
-                for field in currentTable.headerNames:
-                    if re.search(allcapPattern,field):
-                        tableDict=splitTable(parentTable=currentTable,by=field, startfrom=tableDict)
-                if len(tableDict) == 0:
-                    tableDict=splitTable(parentTable=currentTable)
+                header=tuple(currentTable.headerNames)
+                tableDict[hash(header)]=tableDict.get(hash(header),Table())+currentTable
                 tableList.append(tableDict)
     
         return tableList
@@ -261,7 +216,7 @@ class sar:
 
     def query(self, queryFunc):
         queryResult={}
-        for (_hash,_by,_val),_table in [_item for _ in self.tableList for _item in _.items() ]:
+        for _hash,_table in [_item for _ in self.tableList for _item in _.items() ]:
             try:
                 _result=_table.get(filterFunc=queryFunc)
             except:
