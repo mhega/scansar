@@ -63,6 +63,25 @@ class Table:
                 table.data = list(filter(lambda row:filterFunc(_mapperFunc(row, _header)), table.data))
             return fun(*args, **kwargs)
         return new_func
+
+    def split(self, *, by):
+        """A table is split by a column that can be generally thought of as "group by" column - that has a finite list of values.
+        In other word, splitting a parent table into subtables can be thought of as the inverse of UNION operation against the subtables to make up the parent table."""
+            
+        header=tuple(self.headerNames)
+    
+    
+        # splitVals is the finite list of values under "by" column.
+        splitVals=self.get(by)
+    
+        result=[]
+            
+        for val in list(set(splitVals)):
+            subtable=self.get(filterFunc=lambda x:x(by)==val)
+            result.append(Table(headerNames=header, data=subtable))
+        return result
+        
+    
     def print(self):
         printList(header=self.headerNames,data=self.data)
     def getPrintText(self):

@@ -78,31 +78,68 @@ def getListDisplayText(*,header, data):         # *, enforces keyword arguments 
     tableBuffer = {}
     printStreamBuffer(printList)(buffer=tableBuffer, header=header, data=data)
     return  tableBuffer.get('value')
+    
 def printTablesSideways(tableHeader, tableCtx, allowedTabLength, tablesPerLine,topListToPrint = None, key = None, reverse=False, frameBlock = None):
+    """Performs a horizontal table display of a group of tuple lists that share the same header schema.
+    Optionally sorts displayed tables using key function and reverse flag.
+    Allows control over the maximum numbers of rows per table (allowedTabLength), tables per line (tablesPerLine), and total number of displayed tables (topListToPrint) based on the sorting key function
+      - filtering out tables that are sorted higher than the allowed number of tables."""
+
+    # This function was written using complicated and unreadable logic that accounts for all the input parameters to combine each group of adjacent tuple lists.
+    # While it is still functional, it be rewritten to a simpler version -using stack function call.
+    # The function will be kept for code walkthrough and performance comparison with the rewritten version.
+
+    # Default number of tables to be printed is same as the list of input tables.
     if topListToPrint is None:
         topListToPrint = len(tableCtx.keys())
+
+    # Default sorting function results in sorting the tables in the same order as they are input to the function. 
     if key is None:
         key = lambda x: list(tableCtx.values()).index(x)
+
+    # tableCtx is a dictionary of table names making up the keys and lists of tuples making up the actual tables' data.
+    # Each table name is displayed on top of the corresponding table - centered above the header.
+
+    # The header is common across all tables and is input to the function in a separate list.
+
+    # We sort each of the top header (containing the tables' names) and the tables' data
     topHeaderList = sorted(tableCtx.keys(), key=lambda x:key(tableCtx[x]), reverse=reverse)[:topListToPrint]
     ctxValues = sorted(tableCtx.values(), key=lambda x:key(x), reverse=reverse )[:topListToPrint]
+
+    # Calculating the maximum displayable length of the full list of tables 
     maxTabLength = max([len(x[:allowedTabLength]) for x in ctxValues])
+
+    # Calculating the number of tables that will be displayed in the last horizontal display line.
     tablesInLastLine = len(topHeaderList) % tablesPerLine
-    _block ='|'
+    _block ='|'     # Middle separater block
+
+    # Defining a function for returning the number of tables in each line based on line index 
     def tablesInLine(_i):
         return tablesInLastLine if _i == int(len(topHeaderList)//tablesPerLine) else tablesPerLine
+
+    # Replicates a tuple n number of times
     def multiply(value, times, separator):
         import itertools
+        # The call to product was basically intended to replicate a tuple that represents variable values.
+        # Further debugging is needed for proper function documentation.
         if True in [isinstance(v, list) for v in value]:
             prod = list(itertools.product( *[[x] if not isinstance(x,list) else x for x in value]))
             return sum([prod[x]+separator if x < len(prod)-1 else prod[x] for x in range(len(prod))],())                
         else: 
             return (times-1)*(value+separator)+value if times > 0 else value
+            
     for i in range(int(len(topHeaderList)//tablesPerLine) + (lambda x:0 if x ==0 else 1)(tablesInLastLine)):
-        _fullLineTable = [() for l in range(maxTabLength)] 
+        _fullLineTable = [[] for l in range(maxTabLength)] 
         for j in range(tablesInLine(i)):
             for k in range(maxTabLength):
-                _fullLineTable[k]+=((_block,) if j > 0 else ())
-                _fullLineTable[k]+=(list(ctxValues)[i*tablesPerLine+j][:allowedTabLength][k] if k < len(list(ctxValues)[i*tablesPerLine+j][:allowedTabLength]) else tuple(['' for x in range(len(tableHeader))]))
+                if j > 0:
+                    _fullLineTable[k].append(_block)
+                if k < len(list(ctxValues)[i*tablesPerLine+j][:allowedTabLength]):
+                    for _ in list(ctxValues)[i*tablesPerLine+j][:allowedTabLength][k]:
+                        _fullLineTable[k].append( _ )
+                else:
+                    for _ in range(len(tableHeader)):
+                        _fullLineTable[k].append('')
         print('\n\n')
         _centerHeader = tuple([list(topHeaderList)[tablesPerLine*i:tablesPerLine*i+tablesInLine(i)],None][0:(2 if len(tableHeader)%2 == 0 else 1)])
         _side = tuple([[''] for x in range((len(tableHeader)-1)//2)])
@@ -113,13 +150,15 @@ def printTablesSideways(tableHeader, tableCtx, allowedTabLength, tablesPerLine,t
             , data = _fullLineTable
             )
         if frameBlock is not None:
-            print(Stage(re.sub('\n[\s%s]+\n' % _block, '', tableText).rstrip(),frameBlock).stringValue())
+            print(Stage(re.sub('\n[ %s]+\n' % _block, '', tableText).rstrip(),frameBlock).stringValue())
+
         else:
-            print(re.sub('\n[\s%s]+\n' % _block, '', tableText).rstrip())
+            print(re.sub('\n[ %s]+\n' % _block, '', tableText).rstrip())
 
 def multiline(fun):
     def new_func(*args, **kwargs):
         padding=kwargs.get('padding',12)
+        separator=kwargs.get('separator','')
         tablesPerLine=kwargs.get('tablesPerLine',None)
         lineCapacity=kwargs.get('lineCapacity',200)
         tableMaxLengthArr=[max([len(x) for x in y.split('\n')]) for y in args]
@@ -127,7 +166,8 @@ def multiline(fun):
         currentList=[]
         currentWidth=0
         for ind in range(len(args)):
-            if currentWidth+tableMaxLengthArr[ind]+padding > lineCapacity and ind > 0:
+            if ( (not tablesPerLine and currentWidth+tableMaxLengthArr[ind]+padding > lineCapacity and ind > 0) or
+                (tablesPerLine and len(currentList)>=tablesPerLine and ind > 0) ):
                 lists.append(currentList)
                 currentList=[]
                 currentWidth=0
@@ -137,22 +177,57 @@ def multiline(fun):
         if len(lists) == 0 or currentList != lists[-1]:
             lists.append(currentList)
         for list in lists:
-            fun(*list, padding=padding)
+            fun(*list, padding=padding, separator=separator)
     return new_func
 
 @multiline
-def stack(*tables, padding):
+def stack(*tables, padding, separator):
+    """ Prints a list of text structrues (commonly tables) in horizontal alighnment
+    """
+
+    # Note while padding and separator parameters specify no default values in the function signature, their default values are specified in multiline decorator definition.
+    # Hence it is not required to specify parameter values for them.
+    
     tableMaxLengthArr=[max([len(x) for x in y.split('\n')]) for y in tables]
-    tableMaxHeight=max([len(x.split('\n')) for x in tables])
+    tableMaxHeight=max([len(x.strip().split('\n')) for x in tables])
     def pad(spaceCount):
         return ''.join([' ' for x in range(spaceCount)])
 
     print('')
     for line in range(tableMaxHeight):
+        # Defining an unfixed version of the same variable (separaor) which will be altered inside the nested loop to avoid appending separator to the far right side of the tables. 
+        _separator=separator
         for tabIndex in range(len(tables)):
+            # Separator is ommitted after printing the last table in line.
+            if tabIndex==len(tables)-1:
+                _separator=''
             try:
                 val=tables[tabIndex].split('\n')[line]
             except:
                 val=''
-            print(val+pad(tableMaxLengthArr[tabIndex]-len(val)+padding),end='')
+            print(val+pad(tableMaxLengthArr[tabIndex]-len(val)+padding//2)+_separator+pad(padding//2),end='')
         print('')
+
+def compareTables(tableHeader, tableCtx, allowedTabLength, tablesPerLine,topListToPrint = None, key = None, reverse=False):
+    """ This is a rewritten version of printTableSideways
+    """
+    def pad(char, spaceCount):
+        return ''.join([char for x in range(spaceCount)])
+        
+    # Default number of tables to be printed is same as the list of input tables.
+    if topListToPrint is None:
+        topListToPrint = len(tableCtx.keys())
+
+    # Default sorting function results in sorting the tables in the same order as they are input to the function. 
+    if key is None:
+        key = lambda x: list(tableCtx.values()).index(x)
+
+    tables=[]
+    for _title, _data in sorted(tableCtx.items(), key=lambda x:key(list(x)[1]), reverse=reverse):
+        _tableText=getListDisplayText(header=tableHeader, data=_data[:allowedTabLength])
+        _titleLine=pad(' ', (len(_tableText.split('\n')[0].strip())-len(_title)) // 2 )+_title
+        _titleDashes=pad(' ', (len(_tableText.split('\n')[0].strip())-len(_title)) // 2 )+pad('-',len(_title))
+        _tableText=_titleLine+'\n'+_titleDashes+'\n'+_tableText
+        tables.append(_tableText)
+    stack(*tables[:topListToPrint], padding=10, separator='|', tablesPerLine=tablesPerLine)
+        

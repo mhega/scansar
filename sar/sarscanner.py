@@ -47,7 +47,8 @@ class sarscanner:
                 group=field.get('group',None)
                 for t in tables:
                     if group:
-                        for subt in sarscanner.splitTable(t, by=group):
+                        for subt in t.split(by=group):
+                        #for subt in sarscanner.splitTable(t, by=group):
                             data=BarPlot.appendBarPlot(subt.get(('Timestamp',group,sort),filterFunc=lambda x:True, sortKey=lambda x:float(x(sort)), reverse=True)[:5],2)
                             lists.append(getListDisplayText(header=('Timestamp',group,sort,''), data=data))
                     else:
@@ -73,7 +74,7 @@ class sarscanner:
             lists=analyzeFields(report[1], sarData)
             if len(lists) > 0:
                 print(Stage('Analyzing '+report[0]).stringValue())
-                stack(*lists, padding=20, lineCapacity=200)
+                stack(*lists, padding=20, lineCapacity=200, tablesPerLine=2)
 
     def singleFileScan(fhand):
         try:
