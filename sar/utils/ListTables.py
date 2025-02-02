@@ -1,7 +1,7 @@
 #**************************************************
-# ListTables class V 1.3
+# ListTables class V 1.4
 # Author: Mohamed Hegazy
-# Last updated by Mohamed Hegazy - 1/3/2025
+# Last updated by Mohamed Hegazy - 2/2/2025
 #**************************************************
 
 import re
@@ -20,30 +20,40 @@ def padding(input,keylength):   # Space padding for uniform display.
         op = op+' '
     return op
 
-def printStreamBuffer(fun):
+def suppressStdout(fun):
     import io
     import sys
 
     def new_func(*args, buffer=None, **kwargs):
         caller = sys.argv[0].strip()
         if buffer is not None:
-            _stdout = sys.stdout
-            sys.stdout = _buffer = io.StringIO()
             ret = None
+            _stdout = sys.stdout
             try:
+                if isinstance(buffer, dict):
+                    sys.stdout = _buffer = io.StringIO()
+                elif isinstance(buffer, io.StringIO):
+                    sys.stdout = buffer
+                else:
+                    # It should be safe to ignore an unrecognized parameter type for buffer.
+                    # This should have the same effect of not having received the buffer - meaning printing to stdout.
+                    pass
                 ret = fun(*args, **kwargs)
-            except SystemExit as e:
+            finally:
+                # Making sure stdout is recovered under all circumstances.
                 sys.stdout = _stdout
-                print(_buffer.getvalue())
-                raise e   
-            sys.stdout = _stdout
-            buffer['value'] = _buffer.getvalue()
+            if isinstance(buffer, dict):
+                buffer['value'] = _buffer.getvalue()
         else:
             ret = fun(*args, **kwargs)
         return ret
     return new_func
 
-
+def printStreamBuffer(fun):
+    """Same as suppressStdout. Just keeping a version with the old name for backword compatibility
+    """
+    return suppressStdout(fun)
+    
     
 def titledashes(header):
     return tuple([''.join(['-' for c in range(len(k))]) if k is not None else None for k in list(header)]) 
@@ -75,9 +85,10 @@ def printList(header,data):
         print(strToPrint)
 
 def getListDisplayText(*,header, data):         # *, enforces keyword arguments for ensuring header and data are distinguishable from the buffer input to the decorator
-    tableBuffer = {}
-    printStreamBuffer(printList)(buffer=tableBuffer, header=header, data=data)
-    return  tableBuffer.get('value')
+    import io
+    tableBuffer = io.StringIO()
+    suppressStdout(printList)(buffer=tableBuffer, header=header, data=data)
+    return tableBuffer.getvalue()
     
 def printTablesSideways(tableHeader, tableCtx, allowedTabLength, tablesPerLine,topListToPrint = None, key = None, reverse=False, frameBlock = None):
     """Performs a horizontal table display of a group of tuple lists that share the same header schema.
@@ -160,7 +171,7 @@ def multiline(fun):
         padding=kwargs.get('padding',12)
         separator=kwargs.get('separator','')
         tablesPerLine=kwargs.get('tablesPerLine',None)
-        lineCapacity=kwargs.get('lineCapacity',200)
+        lineCapacity=kwargs.get('lineCapacity',300)
         tableMaxLengthArr=[max([len(x) for x in y.split('\n')]) for y in args]
         lists=[]
         currentList=[]
