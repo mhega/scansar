@@ -226,6 +226,9 @@ class sar:
         for _table in queryResult.values():
             print('')
             _table.print()
-            
+        
+    def queryfields(self, *fields, queryFunc = lambda x:True):
+        import re
+        self.query(lambda x:queryFunc(x) and all( [bool(re.match('',x(field))) for field in fields] ))
             
         
